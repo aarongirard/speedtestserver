@@ -48,7 +48,7 @@ def hemisphere_to_decimal(data, hemisphere):
 def parse_GPRMC(data):
 	data = data.split(',')
 	dataDict = {
-	
+	['lat']
 	
 	}
 	
