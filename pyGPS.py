@@ -4,6 +4,8 @@
 eg3. $GPRMC,220516,A,5133.82,N,00042.24,W,173.8,231.8,130694,004.2,W*70
               1    2    3    4    5     6    7    8      9     10  11 12
 
+              220516 hhmmss.ssss
+              130694
 
       1   220516     Time Stamp
       2   A          validity - A-ok, V-invalid
@@ -31,6 +33,7 @@ ser = serial.Serial(
 	bytesize = serial.EIGHTBITS,\
 	timeout = 1)
 #helper function to turn hemisphere lat/long -->decimal
+# Decimal Degrees = Degrees + minutes/60 + seconds/3600
 def hemisphere_to_decimal(data, hemisphere):
 	try:
 		decimalPointPosition = data.index('.')
@@ -47,8 +50,51 @@ def hemisphere_to_decimal(data, hemisphere):
 #Helper function to take GPRMC sentence and parse it
 def parse_GPRMC(data):
 	data = data.split(',')
+	#parse sentence into dict
 	dataDict = {
-	['lat']
-	
+	'sentence_code': data[0][1:], #get rid of $ symbol
+	'validity': data[2],
+	'time': data[1],
+	'date': data[9],
+	'lat_hemi': data[3],
+	'n/s': data[4],
+	'long_hemi': data[5],
+	'e/w': data[6],
+	'speed(knots)': data[7],
+	'true_course': data[8],
+	'variation' : data[10],
+	'variation_e/w' : data[11][0:1],  
+	'checksum': data[11][1:]
 	}
+	#convert lat/long to decimal / place into dict
+	dataDict['lat_dec'] = hemisphere_to_decimal(dataDict['lat_hemi'], dataDict['n/s'])
+	dataDict['long_dec'] = hemisphere_to_decimal(dataDict['long_hemi'], dataDict['e/w'])
+
+	return dataDict
+
+#main loop to parse gps input
+while True:
+	line = ser.readline()
+	if '$GPRMC' in line: #only read this type of NMEA sentence
+		gpsData = parse_GPRMC(line)
+		if gpsData['validity'] == 'A': #means valid reading; V=not valid
+			#write data to db
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	
