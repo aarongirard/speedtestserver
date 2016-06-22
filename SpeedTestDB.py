@@ -28,10 +28,10 @@ while True:
 	if err is None and "Download" in output:
 		#save data to db
 		up = float(outputs[2].split(':')[1].split(' ')[1])
-     		down = float(outputs[1].split(':')[1].split(' ')[1])
-     		ping = float(outputs[0].split(':')[1].split(' ')[1])
-        	values = (date, down, up, ping) 
-        	cursor.execute('INSERT INTO tests(Date,Download_Speed,Upload_Speed,Ping) VALUES (?,?,?,?)', values)
+     	down = float(outputs[1].split(':')[1].split(' ')[1])
+     	ping = float(outputs[0].split(':')[1].split(' ')[1])
+        values = (date, down, up, ping) 
+        cursor.execute('INSERT INTO tests(Date,Download_Speed,Upload_Speed,Ping) VALUES (?,?,?,?)', values)
 		connection.commit() #commit insertion to DB
 	else:
 		#didn't write because of err or Download not in output

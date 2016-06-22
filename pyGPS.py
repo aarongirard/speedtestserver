@@ -2,10 +2,7 @@
 #$GPRMC,011304.000,A,3346.0217,N,08422.6801,W,0.20,6.33,220616,,,A*7B
 """
 eg3. $GPRMC,220516,A,5133.82,N,00042.24,W,173.8,231.8,130694,004.2,W*70
-              1    2    3    4    5     6    7    8      9     10  11 12
-
-              220516 hhmmss.ssss
-              130694
+              1    2    3    4    5     6    7    8      9     10  11 12sp
 
       1   220516     Time Stamp
       2   A          validity - A-ok, V-invalid
@@ -23,6 +20,12 @@ eg3. $GPRMC,220516,A,5133.82,N,00042.24,W,173.8,231.8,130694,004.2,W*70
 #magpi.cc/1PxPopi influenced
 import serial
 import os
+import time
+import sqlite3 as sql
+
+#create connection to database
+connection = sql.connect('SpeedTest.db')
+cursor = connection.cursor()
 
 #set up serial connection to gps in usb port
 ser = serial.Serial(
@@ -69,6 +72,23 @@ def parse_GPRMC(data):
 	#convert lat/long to decimal / place into dict
 	dataDict['lat_dec'] = hemisphere_to_decimal(dataDict['lat_hemi'], dataDict['n/s'])
 	dataDict['long_dec'] = hemisphere_to_decimal(dataDict['long_hemi'], dataDict['e/w'])
+	
+	#convert time/date (UTC) --> epoch
+    #format_in_data: 011304.000 hhmmss.ssss , 220616 ddmmyy
+    #convert time hhmmss.ssss --> hh ,mm,ssss
+	hh = dataDict['time'][:2]
+	mins = dataDict['time'][2:4]
+	ss = dataDict['time'][4:6] #truncate precision
+
+	dd = dataDict['date'][:2]
+	months = dataDict['date'][2:4]
+	yy = '20' + dataDict['date'][4:6] 
+
+	date_time = dd +'.'+ months +'.'+ yy +' '+ hh +'.'+mins+'.'+ss
+	pattern = '%d.%m.%Y %H.%M.%S'
+	os.environ['TZ'] = 'UTC' #must set environment timezone to utc since data is utc
+	epoch = int(time.mktime(time.strptime(date_time,pattern)))
+	dataDict['epoch_utc'] = epoch
 
 	return dataDict
 
@@ -79,6 +99,10 @@ while True:
 		gpsData = parse_GPRMC(line)
 		if gpsData['validity'] == 'A': #means valid reading; V=not valid
 			#write data to db
+			values = (gpsData['epoch_utc'],gpsData['lat_dec'],gpsData['long_dec'],gpsData['speed(knots)'])
+			cursor.execute('INSERT INTO gps(Time,Lat,Long,Speed) VALUES (?,?,?,?)', values)
+			connection.commit() #commit insertion to DB
+	
 
 
 
