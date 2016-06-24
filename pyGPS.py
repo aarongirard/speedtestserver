@@ -27,14 +27,6 @@ import sqlite3 as sql
 connection = sql.connect('SpeedTest.db')
 cursor = connection.cursor()
 
-#set up serial connection to gps in usb port
-ser = serial.Serial(
-	port = '/dev/ttyUSB0',\
-	baudrate = 4800,\
-	parity = serial.PARITY_NONE,\
-	stopbits = serial.STOPBITS_ONE,\
-	bytesize = serial.EIGHTBITS,\
-	timeout = 1)
 #helper function to turn hemisphere lat/long -->decimal
 # Decimal Degrees = Degrees + minutes/60 + seconds/3600
 def hemisphere_to_decimal(data, hemisphere):
@@ -90,19 +82,39 @@ def parse_GPRMC(data):
 	epoch = int(time.mktime(time.strptime(date_time,pattern)))
 	dataDict['epoch_utc'] = epoch
 
+	#only store value if it has Time,Lat,Long nad valaidity ==A
+	if dataDict['lat_dec'] and dataDict['long_dec'] and dataDict['epoch_utc'] and dataDict['validity'] == 'A':
+		dataDict['valid_reading'] = True
+	else: 
+		dataDict['valid_reading'] = True
 	return dataDict
 
-#main loop to parse gps input
-while True:
-	line = ser.readline()
-	if '$GPRMC' in line: #only read this type of NMEA sentence
-		gpsData = parse_GPRMC(line)
-		if gpsData['validity'] == 'A': #means valid reading; V=not valid
-			#write data to db
-			values = (gpsData['epoch_utc'],gpsData['lat_dec'],gpsData['long_dec'],gpsData['speed(knots)'])
-			cursor.execute('INSERT INTO gps(Time,Lat,Long,Speed) VALUES (?,?,?,?)', values)
-			connection.commit() #commit insertion to DB
+#start of script to run
+if __name__ == '__main__':
+	#set up serial connection to gps in usb port
+	ser = serial.Serial(
+		port = '/dev/ttyUSB0',\
+		baudrate = 4800,\
+		parity = serial.PARITY_NONE,\
+		stopbits = serial.STOPBITS_ONE,\
+		bytesize = serial.EIGHTBITS,\
+		timeout = 1)
 	
+	#main loop to parse gps input
+	try:	
+		while True:
+			line = ser.readline()
+			if '$GPRMC' in line: #only read this type of NMEA sentence
+				gpsData = parse_GPRMC(line)
+				if gpsData['valid_reading']: #true, then parse
+					if gpsData['validity'] == 'A': #means valid reading; V=not valid
+						#write data to db
+						values = (gpsData['epoch_utc'],gpsData['lat_dec'],gpsData['long_dec'],gpsData['speed(knots)'])
+						cursor.execute('INSERT INTO gps(Time,Lat,Long,Speed) VALUES (?,?,?,?)', values)
+						connection.commit() #commit insertion to DB
+	except KeyboardInterrupt: #make sure to close connection if program stopped
+		ser.close()
+
 
 
 
