@@ -86,12 +86,13 @@ def parse_GPRMC(data):
 	if dataDict['lat_dec'] and dataDict['long_dec'] and dataDict['epoch_utc'] and dataDict['validity'] == 'A':
 		dataDict['valid_reading'] = True
 	else: 
-		dataDict['valid_reading'] = True
+		dataDict['valid_reading'] = False 
 	return dataDict
 
 #start of script to run
 if __name__ == '__main__':
 	#set up serial connection to gps in usb port
+	print 'connecting'
 	ser = serial.Serial(
 		port = '/dev/ttyUSB0',\
 		baudrate = 4800,\
@@ -101,17 +102,20 @@ if __name__ == '__main__':
 		timeout = 1)
 	
 	#main loop to parse gps input
-	try:	
+	seq = 0 #record only every 
+	try:
 		while True:
 			line = ser.readline()
 			if '$GPRMC' in line: #only read this type of NMEA sentence
 				gpsData = parse_GPRMC(line)
-				if gpsData['valid_reading']: #true, then parse
-					if gpsData['validity'] == 'A': #means valid reading; V=not valid
-						#write data to db
-						values = (gpsData['epoch_utc'],gpsData['lat_dec'],gpsData['long_dec'],gpsData['speed(knots)'])
-						cursor.execute('INSERT INTO gps(Time,Lat,Long,Speed) VALUES (?,?,?,?)', values)
-						connection.commit() #commit insertion to DB
+				if seq >= 60 and gpsData['valid_reading']: #true, then parse
+					#write data to db
+					values = (gpsData['epoch_utc'],gpsData['lat_dec'],gpsData['long_dec'],gpsData['speed(knots)'])
+					print values
+					cursor.execute('INSERT INTO gps(Time,Lat,Long,Speed) VALUES (?,?,?,?)', values)
+					connection.commit() #commit insertion to DB
+					seq = 0
+				seq+=1
 	except KeyboardInterrupt: #make sure to close connection if program stopped
 		ser.close()
 
