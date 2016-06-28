@@ -107,6 +107,7 @@ if __name__ == '__main__':
 		while True:
 			line = ser.readline()
 			if '$GPRMC' in line: #only read this type of NMEA sentence
+				print line
 				gpsData = parse_GPRMC(line)
 				if seq >= 60 and gpsData['valid_reading']: #true, then parse
 					#write data to db
