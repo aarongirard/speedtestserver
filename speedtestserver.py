@@ -21,12 +21,13 @@ def process_tests_json(tests):
 		else:
 			newline += '{'
 			first_line = False
-		newline+= 'date: ' + test[0] + ','
-		newline+= 'down: ' + test[1] + ','
-		newline+= 'up: ' + test[2] + ','
-		newline+= 'ping' + test[3]
+		newline+= 'date: '  + '\"'+test[0]+ '\",'
+		newline+= 'down: ' + str(test[1]) + ','
+		newline+= 'up: ' + str(test[2]) + ','
+		newline+= 'ping:' + str(test[3])
 		newline+= '}'
-	return json + ']'
+		json+= newline
+	return json + '];'
 
 def get_db():
 	db = getattr(g, '_database', None)
@@ -49,9 +50,8 @@ def request_speed_tests():
 	db = get_db()
 	cursor = db.execute('select * from tests;')
 	tests  = cursor.fetchall()
-	print process_tests(tests) #tests will be a tuple time, downlaod, uploadd, ping
-
-	return render_template('index.html',tests=tests)	
+	data =  process_tests_json(tests) #tests will be a tuple time, downlaod, uploadd, ping
+	return render_template('tests_graph.html',data=data)	
 
 #To set to a specific ip app.run(host="192.168.1.7",port=5010) handy if your pc has a few ip's
 if __name__ == '__main__':

@@ -1,0 +1,128 @@
+<html lang="en">
+ 
+<head>
+ 
+    <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
+ 
+    <link href="http://getbootstrap.com/examples/justified-nav/justified-nav.css" rel="stylesheet">
+ 
+    <script src="http://d3js.org/d3.v4.min.js" charset="utf-8"></script>
+    <script src="https://d3js.org/d3-array.v1.min.js" charset="utf-8"></script>
+ 
+</head>
+ 
+<body>
+ 
+    <div class="container">
+ 
+        <div class="jumbotron">
+         <svg id="visualisation" width="1000" height="500"></svg> 
+        </div>
+ 
+    </div>
+ 
+</body>
+<style type="text/css">
+  .axis path {
+    fill: none;
+    stroke: #777;
+    shape-rendering: crispEdges;
+}
+.axis text {
+    font-family: Lato;
+    font-size: 13px;
+}
+</style>
+<script type="text/javascript">
+var data = {{data | safe}}
+//parse time
+var parseTime = d3.timeParse('%Y-%m-%d %H:%M:%S'); //2016-06-16 02:56:16
+
+
+//setting the base d3 object, attaching it to svg element in html, setting dimensions (based off svg html obj dimensions)
+//adding scale for the axis; range  = length of lines of axis;domain  = values of axis, should be based off of data
+var vis = d3.select("#visualisation"),
+WIDTH = 1000,
+HEIGHT = 500,
+MARGINS = {
+    top: 20,
+    right: 20,
+    bottom: 20,
+    left: 50},
+
+//set scale for the x-axis =time scale; dynamically set date
+//extent returns an array of [min value, max value]
+maxDates = d3.extent(data, function(d){
+    return parseTime(d.date)
+})
+
+//calculate the largest speed value for the domain of y axis
+maxPing = d3.max(data, function(d){
+    return d.ping
+})
+maxUp = d3.max(data, function(d){
+    return d.up
+})
+maxDown = d3.max(data, function(d){
+    return d.down
+})
+maxDomainSpeeds = Math.max(maxDown, maxPing, maxUp)
+console.log(maxDomainSpeeds)
+
+
+//set scale based upon the min/max date
+xScale = d3.scaleTime()
+.range([MARGINS.left, WIDTH - MARGINS.right])
+.domain([maxDates[0],maxDates[1]]),
+
+//set scale for the y-axis based upon the max speed found
+yScale = d3.scaleLinear()
+.range([HEIGHT - MARGINS.top, MARGINS.bottom])
+.domain([0,maxDomainSpeeds+8]),
+
+//setting the scale of the axis with the objects set above; orient left positions the y axis correctly vertically
+xAxis = d3.axisBottom(xScale),
+yAxis = d3.axisLeft(yScale)//.orient("left"); //flip axis to amke it vertical
+
+//add axis to svg, with class tag and transforming so they are positioned correctly
+vis.append("svg:g").attr("class","axis").attr("transform", "translate(0," + (HEIGHT - MARGINS.bottom) + ")").call(xAxis);
+vis.append("svg:g").attr("class","axis").attr("transform", "translate(" + (MARGINS.left) + ",0)").call(yAxis); //move horizonatally
+
+//telling the line generating function what json object keys the data for each is respectively in
+// i.e. put the year value on the x axis and the sale value on the y axis
+//interopolate basis smooths the line instead of straight lines from point to point
+var lineGen1 = d3.line()
+.x(function(d) { return xScale(parseTime(d.date)); })
+.y(function(d) { return yScale(d.up); });
+var lineGen2 = d3.line()
+.x(function(d) { return xScale(parseTime(d.date)); })
+.y(function(d) { return yScale(d.down); });
+var lineGen3 = d3.line()
+.x(function(d) { return xScale(parseTime(d.date)); })
+.y(function(d) { return yScale(d.ping); });
+
+//adding first line
+vis.append('svg:path')
+.attr('d', lineGen1(data))
+.attr('stroke', 'green')
+.attr('stroke-width', 2)
+.attr('fill', 'none');
+
+//adding second line
+vis.append('svg:path')
+.attr('d', lineGen2(data))
+.attr('stroke', 'blue')
+.attr('stroke-width', 2)
+.attr('fill', 'none');
+
+//adding third line
+vis.append('svg:path')
+.attr('d', lineGen3(data))
+.attr('stroke', 'red')
+.attr('stroke-width', 2)
+.attr('fill', 'none');
+
+
+
+</script> 
+</html>
