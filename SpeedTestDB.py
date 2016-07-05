@@ -6,13 +6,16 @@ import datetime
 import time
 import sqlite3 as sql
 
-errOccur = 0
+
 
 #set connection to DB
 connection = sql.connect('SpeedTest.db')
 cursor = connection.cursor()
 
 while True:
+	#set set or reset error flag
+	errOccur = 0
+
 	#record time
 	ts = time.time() #get timestamp
 	date = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S') #human readable time
@@ -20,11 +23,13 @@ while True:
 	#run speed test, output is output variable
 	p = subprocess.Popen("speedtest-cli --simple", stdout=subprocess.PIPE, shell=True)
 	(output, err) = p.communicate() #data buffered in memory//will block next statement
-	p_status = p.wait() #could use other method if want to check output real rime
+	p_status = p.wait() #could use other method if want to check output real time
 
+	#split outputs by line into a list
 	outputs = output.split('\n')
 	
-	#checks if speed test was successful
+	#checks if speed test was successful. Download is always in a 
+	#succesful attempt but not in a failed one
 	if err is None and "Download" in output:
 		#save data to db
 		up = float(outputs[2].split(':')[1].split(' ')[1])

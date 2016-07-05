@@ -31,6 +31,7 @@
 </style>
 
 <script type="text/javascript">
+//the safe tells the jinja templater to accept the json object with \" characters
 var data = {{data | safe}}
 //parse time
 var parseTime = d3.timeParse('%Y-%m-%d %H:%M:%S'); //2016-06-16 02:56:16
