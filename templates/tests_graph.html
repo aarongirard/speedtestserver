@@ -1,27 +1,19 @@
 <html lang="en">
  
 <head>
- 
     <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet">
- 
     <link href="http://getbootstrap.com/examples/justified-nav/justified-nav.css" rel="stylesheet">
- 
     <script src="http://d3js.org/d3.v4.min.js" charset="utf-8"></script>
     <script src="https://d3js.org/d3-array.v1.min.js" charset="utf-8"></script>
- 
 </head>
- 
 <body>
- 
     <div class="container">
- 
         <div class="jumbotron">
          <svg id="visualisation" width="1000" height="500"></svg> 
         </div>
- 
     </div>
- 
 </body>
+
 <style type="text/css">
   .axis path {
     fill: none;
@@ -32,12 +24,16 @@
     font-family: Lato;
     font-size: 13px;
 }
+.legend {
+    font-size: 14px;
+    font-weight: bold;
+}
 </style>
+
 <script type="text/javascript">
 var data = {{data | safe}}
 //parse time
 var parseTime = d3.timeParse('%Y-%m-%d %H:%M:%S'); //2016-06-16 02:56:16
-
 
 //setting the base d3 object, attaching it to svg element in html, setting dimensions (based off svg html obj dimensions)
 //adding scale for the axis; range  = length of lines of axis;domain  = values of axis, should be based off of data
@@ -45,9 +41,9 @@ var vis = d3.select("#visualisation"),
 WIDTH = 1000,
 HEIGHT = 500,
 MARGINS = {
-    top: 20,
+    top: 50,
     right: 20,
-    bottom: 20,
+    bottom: 50,
     left: 50},
 
 //set scale for the x-axis =time scale; dynamically set date
@@ -91,38 +87,64 @@ vis.append("svg:g").attr("class","axis").attr("transform", "translate(" + (MARGI
 //telling the line generating function what json object keys the data for each is respectively in
 // i.e. put the year value on the x axis and the sale value on the y axis
 //interopolate basis smooths the line instead of straight lines from point to point
+
+//line for upload speed
 var lineGen1 = d3.line()
 .x(function(d) { return xScale(parseTime(d.date)); })
 .y(function(d) { return yScale(d.up); });
+//for download speed
 var lineGen2 = d3.line()
 .x(function(d) { return xScale(parseTime(d.date)); })
 .y(function(d) { return yScale(d.down); });
+//for ping
 var lineGen3 = d3.line()
 .x(function(d) { return xScale(parseTime(d.date)); })
 .y(function(d) { return yScale(d.ping); });
 
-//adding first line
+//adding first line (up)
 vis.append('svg:path')
 .attr('d', lineGen1(data))
 .attr('stroke', 'green')
 .attr('stroke-width', 2)
-.attr('fill', 'none');
+.attr('fill', 'none')
+.attr("id", "up");
 
-//adding second line
+//adding second line (down)
 vis.append('svg:path')
 .attr('d', lineGen2(data))
 .attr('stroke', 'blue')
 .attr('stroke-width', 2)
-.attr('fill', 'none');
+.attr('fill', 'none')
+.attr("id", "down");
 
-//adding third line
+//adding third line (ping)
 vis.append('svg:path')
 .attr('d', lineGen3(data))
 .attr('stroke', 'red')
 .attr('stroke-width', 2)
-.attr('fill', 'none');
+.attr('fill', 'none')
+.attr("id", "ping");
 
+//appending text elements i.e. legends
+vis.append("text")
+.attr("x", 250)
+.attr("class", "legend")
+.attr("y", HEIGHT)
+.style("fill", "green")
+.text("Upload Speed Mb/s");
 
+vis.append("text").attr("x", 250)
+.attr("class", "legend")
+.attr("y", HEIGHT)
+.style("fill", "blue")
+.text("Download Speed Mb/s");
+
+vis.append("text")
+.attr("x", 250)
+.attr("class", "legend")
+.attr("y", HEIGHT)
+.style("fill", "red")
+.text("Ping");
 
 </script> 
 </html>

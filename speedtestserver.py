@@ -8,6 +8,8 @@ app = Flask(__name__)
 
 DB = 'SpeedTest.db'
 
+
+#processes the result of sql querry into json object
 def process_tests_json(tests):
 	#build json object
 	json ='['
@@ -45,6 +47,7 @@ def close_connection(exception):
 def hello_world():
     return 'YOU ARE IN AARONS DOMAIN MOOOAHAHAH'
 
+#route for graph of internet speed tests
 @app.route('/tests')
 def request_speed_tests():
 	db = get_db()
