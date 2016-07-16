@@ -23,7 +23,7 @@ while keep_running:
 
   with open('predit_trumpvp.txt','a+') as f:
     f.write(string+'\n')
-  time.sleep(60)
+  time.sleep(300)
   if int(time.time()) > end_time:
     keep_running = False
 
