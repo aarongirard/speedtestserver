@@ -128,20 +128,21 @@ vis.append('svg:path')
 
 //appending text elements i.e. legends
 vis.append("text")
-.attr("x", 250)
+.attr("x", 0)
 .attr("class", "legend")
 .attr("y", HEIGHT)
 .style("fill", "green")
 .text("Upload Speed Mb/s");
 
-vis.append("text").attr("x", 250)
+vis.append("text")
+.attr("x", 250)
 .attr("class", "legend")
 .attr("y", HEIGHT)
 .style("fill", "blue")
 .text("Download Speed Mb/s");
 
 vis.append("text")
-.attr("x", 250)
+.attr("x", 450)
 .attr("class", "legend")
 .attr("y", HEIGHT)
 .style("fill", "red")
