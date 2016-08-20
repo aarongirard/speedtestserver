@@ -38,7 +38,11 @@ def create_request_prediction_content(ticker_symbol, format = 'applicatoin/json'
 
 #send http get request  
 def get_prediction_content(req):
-  resp = url.urlopen(req)
+  try:
+    resp = url.urlopen(req)
+  except urllib2.URLError as e:
+    print str(e.reason)
+    return 0
   content = resp.read()
   if content == 'null':
     print 'It looks like the ticket symbol you input is not valid'
@@ -60,6 +64,10 @@ def parsed_prediction_contract(got_prediction):
 def get_parse_write(req):
   #send get http api request
   content = get_prediction_content(req)
+
+  #if error, return 
+  if content == 0:
+    return
   #parse returned json object, reutrn dictionary with lastcloseprice
   prediction_content_to_save = parsed_prediction_contract(content)
   
@@ -105,7 +113,7 @@ if RECURRING == 0:
 #while end time hasn't been reached
 print 'Start Time: ',START_DATETIME,' End Time: ', END_DATETIME
 while int(time.time()) < END_DATETIME: 
-  print get_parse_write(req)
+  get_parse_write(req)
   time.sleep(RECURRING) 
 
 print 'The script has reached the ented End Datetime'

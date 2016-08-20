@@ -1,0 +1,4 @@
+nohup sudo python predit_api_parser.py 3PTY.DEBATE 180 999999999999 &
+nohup sudo python predit_api_parser.py PREZPRTY16 180 999999999999 &
+nohup sudo python predit_api_parser.py USPREZ16 180 999999999999 &
+nohup sudo python predit_api_parser.py WOMAN.USPREZ16 180 999999999999 &
